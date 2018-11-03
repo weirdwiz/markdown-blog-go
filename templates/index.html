@@ -1,3 +1,4 @@
+{{ define "layout" }}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -178,7 +179,7 @@
     <script>
         var styleSrc = [
             "https://fonts.googleapis.com/css?family=Open+Sans",
-            "static/css/style.css"
+            "/static/css/style.css"
         ];
         for (var i = 0; i < styleSrc.length; i++) {
             var index = styleSrc[i];
@@ -187,7 +188,7 @@
             link.rel = 'stylesheet';
         }
         var scriptSrc = [
-            "static/js/script.js",
+            "/static/js/script.js",
         ];
         for (var i_2 = 0; i_2 < scriptSrc.length; i_2++) {
             var index = scriptSrc[i_2];
@@ -199,3 +200,5 @@
 </body>
 
 </html>
+
+{{end}}
