@@ -3,19 +3,20 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"net/http"
+	"strconv"
 	"time"
 
+	"github.com/julienschmidt/httprouter"
 	markdown "gopkg.in/russross/blackfriday.v2"
 )
 
 // Post : struct for a blog post
 type Post struct {
-	html     string
-	date     time.Time
-	title    string
-	markdown string
+	URL      string
+	HTML     template.HTML
+	Title    string
+	Markdown string
 }
 
 func (post Post) parse() error {
@@ -23,17 +24,18 @@ func (post Post) parse() error {
 	return nil
 }
 
+var posts []Post
+
 func main() {
-	parseMarkdown()
-	mux := http.NewServeMux()
+	mux := httprouter.New()
 
 	// Fileserver
-	files := http.FileServer(http.Dir(config.Static))
-	mux.Handle("/static/", http.StripPrefix("/static/", files))
+	mux.ServeFiles("/static/*filepath", http.Dir(config.Static))
 
 	// Handlers
-	mux.HandleFunc("/", index)
-
+	mux.GET("/", index)
+	mux.GET("/blog/:id", getPosts)
+	// Server Config
 	server := &http.Server{
 		Addr:           config.Address,
 		Handler:        mux,
@@ -44,26 +46,25 @@ func main() {
 	server.ListenAndServe()
 }
 
-func index(w http.ResponseWriter, r *http.Request) {
-	templates := template.Must(template.ParseFiles("templates/layout.html"))
-	templates.ExecuteTemplate(w, "layout", template.HTML(parseMarkdown()))
-}
-
-func parseMarkdown() string {
-	file, err := ioutil.ReadFile("test.md")
+func index(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	templates := template.Must(template.ParseFiles("templates/index.html"))
+	err := templates.ExecuteTemplate(w, "index", posts)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
-	parsed := markdown.Run(file)
-	return string(parsed)
 }
 
-func generateHTML(w http.ResponseWriter, data interface{}, filenames ...string) {
-	var files []string
-	for _, file := range filenames {
-		files = append(files, fmt.Sprintf("templates/%s.html", file))
-	}
+func parseMarkdown(post *Post) {
+	post.HTML = template.HTML(string(markdown.Run([]byte(post.Markdown))))
 
-	templates := template.Must(template.ParseFiles(files...))
-	templates.ExecuteTemplate(w, "layout", data)
+}
+
+func getPosts(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	templates := template.Must(template.ParseFiles("templates/layout.html"))
+	index, err := strconv.ParseInt(p.ByName("id"), 10, 32)
+	parseMarkdown(&posts[index])
+	err = templates.ExecuteTemplate(w, "layout", posts[index])
+	if err != nil {
+		fmt.Println(err)
+	}
 }

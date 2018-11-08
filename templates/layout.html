@@ -5,14 +5,33 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Title</title>
+    <title>{{.Title}}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
-    <script src="main.js"></script>
 </head>
 
 <body>
-    {{.}}
+    {{.HTML}}
+    <script>
+        var styleSrc = [
+            "https://fonts.googleapis.com/css?family=Open+Sans",
+            "/static/css/style.css"
+        ];
+        for (var i = 0; i < styleSrc.length; i++) {
+            var index = styleSrc[i];
+            var link = document.body.appendChild(document.createElement('link'));
+            link.href = index;
+            link.rel = 'stylesheet';
+        }
+        var scriptSrc = [
+            "/static/js/script.js",
+        ];
+        for (var i_2 = 0; i_2 < scriptSrc.length; i_2++) {
+            var index = scriptSrc[i_2];
+            var script = document.body.appendChild(document.createElement('script'));
+            script.async = false;
+            script.src = index;
+        }
+    </script>
 </body>
 
 </html>
